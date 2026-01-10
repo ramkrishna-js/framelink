@@ -1,38 +1,58 @@
-# FrameLink
-
 <div align="center">
 
-![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
-![Lavalink](https://img.shields.io/badge/Lavalink-V4%20%26%20V3-blue?style=for-the-badge)
+# ˗ˏˋ framelink ˎˊ˗
 
-**A lightweight, robust, and plugin-ready Lavalink client for Node.js.**  
-Designed to work seamlessly with Discord.js, Eris, Oceanic, and more.
+**🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
+
+[![npm version](https://img.shields.io/npm/v/framelink.svg?style=flat-square)](https://www.npmjs.com/package/framelink)
+[![npm downloads](https://img.shields.io/npm/dm/framelink.svg?style=flat-square)](https://www.npmjs.com/package/framelink)
+[![license](https://img.shields.io/github/license/ramkrishna-js/framelink.svg?style=flat-square)](https://github.com/ramkrishna-js/framelink/blob/master/LICENSE)
+[![stars](https://img.shields.io/github/stars/ramkrishna-js/framelink.svg?style=flat-square)](https://github.com/ramkrishna-js/framelink/stargazers)
+
+---
+
+[📄 Documentation](https://github.com/ramkrishna-js/framelink#readme) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/framelink)
 
 </div>
 
-## Features
+<hr />
 
--   🎵 **Universal Support:** Works with Lavalink v3 and v4.
--   🎼 **Multi-Platform:** Built-in support for YouTube, Spotify, Apple Music, Deezer, and SoundCloud (via Lavalink/LavaSrc).
--   🚀 **Performance:** Lightweight architecture with minimal dependencies.
--   🔄 **Queue & Autoplay:** Advanced queue system with smart autoplay fallback.
--   🧩 **Plugin System:** Extend functionality easily with custom plugins.
--   🛡️ **Type-Safe:** Written in TypeScript with full type definitions.
+## 📑 Table of Contents
+- [✨ Features](#-features)
+- [📦 Installation](#-installation)
+- [╰┈1️⃣ Quick Start](#-quick-start)
+- [╰┈2️⃣ Event Handling](#-event-handling)
+- [╰┈3️⃣ Supported Platforms](#-supported-platforms)
+- [🧩 Plugins](#-plugins)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
 
-## Installation
+<hr />
+
+## ✨ Features
+- 🎵 **Universal Support:** Seamlessly works with Lavalink v3 and v4.
+- 🎼 **Multi-Platform:** Built-in support for YouTube, Spotify, Apple Music, Deezer, and more.
+- 🚀 **Performance:** Optimized for speed with minimal memory footprint.
+- 🔄 **Smart Queue:** Advanced queue system with automated autoplay logic.
+- 🧩 **Extensible:** Robust plugin system to customize your experience.
+- 🛡️ **Type-Safe:** Written entirely in TypeScript for a superior DX.
+
+<hr />
+
+## 📦 Installation
 
 ```bash
 npm install framelink
 ```
 
-## Quick Start
+<hr />
+
+## ╰┈1️⃣ Quick Start
+
+### Initializing the Manager
 
 ```typescript
 import { LavalinkManager } from 'framelink';
-import { Client } from 'discord.js';
-
-const client = new Client({ intents: ['Guilds', 'GuildVoiceStates'] });
 
 const manager = new LavalinkManager({
     nodes: [
@@ -40,49 +60,108 @@ const manager = new LavalinkManager({
             host: 'localhost',
             port: 2333,
             password: 'youshallnotpass',
-            secure: false,
-            version: 'v4' 
+            version: 'v4' // or 'v3'
         }
     ],
     send: (guildId, payload) => {
-        const guild = client.guilds.cache.get(guildId);
-        if (guild) guild.shard.send(payload);
+        // Your library's send logic (Discord.js, Eris, etc.)
     }
 });
 
-client.on('ready', () => {
-    manager.init(client.user!.id);
-    console.log('FrameLink initialized!');
-});
-
-client.on('raw', (d) => manager.handleVoiceUpdate(d));
-
-client.login('YOUR_BOT_TOKEN');
+manager.init('YOUR_BOT_ID');
 ```
 
-## Playing Music
+### Creating a Player & Playing
 
 ```typescript
-// Create a player
 const player = manager.createPlayer({
     guildId: 'GUILD_ID',
     voiceChannelId: 'VOICE_CHANNEL_ID',
     textChannelId: 'TEXT_CHANNEL_ID',
-    selfDeaf: true,
     autoplay: true
 });
 
-// Search and play
-const res = await manager.search('ytsearch:Never Gonna Give You Up');
+// Search for a track
+const res = await manager.search('Never Gonna Give You Up', 'yt');
+
+// Add to queue and play
 player.queue.add(res.tracks[0]);
-player.connect(); // Ensure you join the voice channel (implementation specific depending on lib)
 player.play();
 ```
 
-## Contributing
+<hr />
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## ╰┈2️⃣ Event Handling
 
-## License
+```typescript
+manager.on('nodeConnect', (node) => {
+    console.log(`Node ${node.options.host} connected!`);
+});
 
-MIT
+manager.on('trackStart', (player, track) => {
+    console.log(`Now playing: ${track.info.title}`);
+});
+
+manager.on('queueEnd', (player) => {
+    console.log(`Queue ended for guild ${player.guildId}`);
+});
+```
+
+<hr />
+
+## ╰┈3️⃣ Supported Platforms
+
+FrameLink supports any platform compatible with Lavalink and its plugins (like LavaSrc):
+- YouTube / YouTube Music
+- Spotify
+- Apple Music
+- Deezer
+- SoundCloud
+- Twitch
+- HTTP Links
+
+<hr />
+
+## 🧩 Plugins
+
+FrameLink is built with extensibility in mind. You can easily create and load plugins to extend the manager's functionality.
+
+```typescript
+import { Plugin } from 'framelink';
+
+class MyCustomPlugin extends Plugin {
+    name = 'MyPlugin';
+    load(manager) {
+        super.load(manager);
+        console.log('Plugin loaded!');
+    }
+    unload() {}
+}
+
+const manager = new LavalinkManager({
+    // ... other options
+    plugins: [new MyCustomPlugin()]
+});
+```
+
+<hr />
+
+## 🤝 Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+
+<hr />
+
+## 📜 License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+
+<hr />
+
+<div align="center">
+
+Built with ❤️ by [Ramkrishna](https://github.com/ramkrishna-js)
+
+</div>
