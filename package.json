@@ -1,18 +1,39 @@
 {
-  "name": "framelink",
+  "name": "@ramkrishna-js/framelink",
   "version": "1.0.0",
-  "description": "",
+  "description": "🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "lavalink",
+    "lavalink-client",
+    "discord",
+    "discord-bot",
+    "music-bot",
+    "music",
+    "framelink",
+    "lavasrc"
+  ],
   "author": "Ramkrishna",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramkrishna-js/framelink.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ramkrishna-js/framelink/issues"
+  },
+  "homepage": "https://github.com/ramkrishna-js/framelink#readme",
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^25.0.5",

@@ -4,14 +4,14 @@
 
 **🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
-[![npm version](https://img.shields.io/npm/v/framelink.svg?style=flat-square)](https://www.npmjs.com/package/framelink)
-[![npm downloads](https://img.shields.io/npm/dm/framelink.svg?style=flat-square)](https://www.npmjs.com/package/framelink)
+[![npm version](https://img.shields.io/npm/v/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
+[![npm downloads](https://img.shields.io/npm/dm/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 [![license](https://img.shields.io/github/license/ramkrishna-js/framelink.svg?style=flat-square)](https://github.com/ramkrishna-js/framelink/blob/master/LICENSE)
 [![stars](https://img.shields.io/github/stars/ramkrishna-js/framelink.svg?style=flat-square)](https://github.com/ramkrishna-js/framelink/stargazers)
 
 ---
 
-[📄 Documentation](https://github.com/ramkrishna-js/framelink#readme) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/framelink)
+[📄 Documentation](https://github.com/ramkrishna-js/framelink#readme) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 
 </div>
 
@@ -30,7 +30,7 @@
 ## 📦 Installation
 
 ```bash
-npm install framelink
+npm install @ramkrishna-js/framelink
 ```
 
 <hr />
@@ -40,7 +40,7 @@ npm install framelink
 ### Initializing the Manager
 
 ```typescript
-import { LavalinkManager } from 'framelink';
+import { LavalinkManager } from '@ramkrishna-js/framelink';
 
 const manager = new LavalinkManager({
     nodes: [
@@ -115,7 +115,7 @@ FrameLink supports any platform compatible with Lavalink and its plugins (like L
 FrameLink is built with extensibility in mind. You can easily create and load plugins to extend the manager's functionality.
 
 ```typescript
-import { Plugin } from 'framelink';
+import { Plugin } from '@ramkrishna-js/framelink';
 
 class MyCustomPlugin extends Plugin {
     name = 'MyPlugin';

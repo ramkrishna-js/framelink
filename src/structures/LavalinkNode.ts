@@ -33,7 +33,7 @@ export class LavalinkNode {
         const headers: Record<string, string> = {
             Authorization: this.options.password || 'youshallnotpass',
             'User-Id': this.manager.userId || '0',
-            'Client-Name': 'framelink/1.0.0'
+            'Client-Name': '@ramkrishna-js/framelink/1.0.0'
         };
 
         const protocol = this.options.secure ? 'wss' : 'ws';
