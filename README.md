@@ -1,6 +1,6 @@
 <div align="center">
 
-# ˗ˏˋ framelink ˎˊ˗
+<img src="https://capsule-render.vercel.app/render?type=waving&color=auto&height=250&section=header&text=FrameLink&fontSize=90&animation=fadeIn&fontAlignY=38" />
 
 **🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
@@ -14,18 +14,6 @@
 [📄 Documentation](https://github.com/ramkrishna-js/framelink#readme) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/framelink)
 
 </div>
-
-<hr />
-
-## 📑 Table of Contents
-- [✨ Features](#-features)
-- [📦 Installation](#-installation)
-- [╰┈1️⃣ Quick Start](#-quick-start)
-- [╰┈2️⃣ Event Handling](#-event-handling)
-- [╰┈3️⃣ Supported Platforms](#-supported-platforms)
-- [🧩 Plugins](#-plugins)
-- [🤝 Contributing](#-contributing)
-- [📜 License](#-license)
 
 <hr />
 
