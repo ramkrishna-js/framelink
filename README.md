@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/render?type=waving&color=auto&height=250&section=header&text=FrameLink&fontSize=90&animation=fadeIn&fontAlignY=38" />
+<img src="https://capsule-render.vercel.app/render?type=waving&color=B48EAD&height=250&section=header&text=FrameLink&fontSize=90&fontAlignY=38" />
 
 **🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
