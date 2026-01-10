@@ -10,6 +10,8 @@ export interface NodeOptions {
     retryAmount?: number;
     retryDelay?: number;
     version?: 'v3' | 'v4';
+    resumeKey?: string;
+    resumeTimeout?: number;
 }
 
 export class LavalinkNode {
@@ -18,11 +20,13 @@ export class LavalinkNode {
     public socket: WebSocket | null = null;
     public stats: any = {};
     public connected: boolean = false;
+    public sessionId: string | null = null;
 
     constructor(manager: LavalinkManager, options: NodeOptions) {
         this.manager = manager;
         this.options = {
             version: 'v4',
+            resumeTimeout: 60,
             ...options
         };
     }
@@ -35,6 +39,10 @@ export class LavalinkNode {
             'User-Id': this.manager.userId || '0',
             'Client-Name': '@ramkrishna-js/framelink/1.0.0'
         };
+
+        if (this.options.resumeKey) {
+            headers['Resume-Key'] = this.options.resumeKey;
+        }
 
         const protocol = this.options.secure ? 'wss' : 'ws';
         let endpoint = '';
@@ -80,11 +88,22 @@ export class LavalinkNode {
 
     private onOpen() {
         this.connected = true;
+        if (this.options.resumeKey) {
+            this.send({
+                op: 'configureResuming',
+                key: this.options.resumeKey,
+                timeout: this.options.resumeTimeout
+            });
+        }
         this.manager.emit('nodeConnect', this);
     }
 
     private onMessage(data: WebSocket.Data) {
         const payload = JSON.parse(data.toString());
+        
+        if (payload.op === 'ready') {
+            this.sessionId = payload.sessionId;
+        }
         
         switch (payload.op) {
             case 'stats':
@@ -117,6 +136,16 @@ export class LavalinkNode {
             case 'TrackEndEvent':
                 this.manager.emit('trackEnd', player, payload.track, payload.reason);
                 if (payload.reason === 'FINISHED' || payload.reason === 'LOAD_FAILED') {
+                     // Handle repeat modes
+                     if (player.repeatMode === 'track' && player.queue.current) {
+                         player.play(player.queue.current);
+                         return;
+                     }
+
+                     if (player.repeatMode === 'queue' && player.queue.current) {
+                         player.queue.add(player.queue.current);
+                     }
+
                      // Auto-play next track in queue or trigger autoplay
                      if (player.queue.tracks.length > 0) {
                          player.play();

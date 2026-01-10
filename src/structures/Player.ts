@@ -11,6 +11,8 @@ export interface PlayerOptions {
     autoplay?: boolean;
 }
 
+export type RepeatMode = 'off' | 'track' | 'queue';
+
 export class Player {
     public manager: LavalinkManager;
     public node: LavalinkNode;
@@ -24,6 +26,8 @@ export class Player {
     public voiceUpdateState: { sessionId?: string; event?: any } = {};
     public queue: Queue;
     public autoplay: boolean = false;
+    public repeatMode: RepeatMode = 'off';
+    public filters: any = {};
     
     constructor(manager: LavalinkManager, node: LavalinkNode, options: PlayerOptions) {
         this.manager = manager;
@@ -33,6 +37,48 @@ export class Player {
         this.textChannelId = options.textChannelId || null;
         this.autoplay = options.autoplay || false;
         this.queue = new Queue(this);
+    }
+
+    public setRepeatMode(mode: RepeatMode) {
+        this.repeatMode = mode;
+        return this;
+    }
+
+    public setFilters(filters: any) {
+        this.filters = filters;
+        this.node.send({
+            op: 'filters',
+            guildId: this.guildId,
+            ...filters
+        });
+        return this;
+    }
+
+    public setBassboost(value: boolean) {
+        if (value) {
+            this.setFilters({
+                equalizer: [
+                    { band: 0, gain: 0.25 },
+                    { band: 1, gain: 0.25 },
+                    { band: 2, gain: 0.25 },
+                    { band: 3, gain: 0.25 }
+                ]
+            });
+        } else {
+            this.setFilters({ equalizer: [] });
+        }
+        return this;
+    }
+
+    public setNightcore(value: boolean) {
+        if (value) {
+            this.setFilters({
+                timescale: { speed: 1.1, pitch: 1.1, rate: 1.0 }
+            });
+        } else {
+            this.setFilters({ timescale: { speed: 1.0, pitch: 1.0, rate: 1.0 } });
+        }
+        return this;
     }
 
     public async play(track?: string | any, options: any = {}) {
