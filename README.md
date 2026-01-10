@@ -1,8 +1,12 @@
+<p align="center">
+  <img src="https://capsule-render.vercel.app/render?type=soft&color=auto&fontAlignY=40&height=200&text=FrameLink&fontSize=90" />
+</p>
+
+<p align="center">
+  <strong>🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.</strong>
+</p>
+
 <div align="center">
-
-<img src="https://capsule-render.vercel.app/render?type=waving&color=B48EAD&height=250&section=header&text=FrameLink&fontSize=90&fontAlignY=38" />
-
-**🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
 [![npm version](https://img.shields.io/npm/v/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 [![npm downloads](https://img.shields.io/npm/dm/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
