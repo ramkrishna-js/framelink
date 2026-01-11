@@ -69,6 +69,18 @@ export class Queue {
         return this.tracks.length + (this.current ? 1 : 0);
     }
 
+    public get isEmpty() {
+        return this.tracks.length === 0;
+    }
+
+    public get first() {
+        return this.tracks[0];
+    }
+
+    public get last() {
+        return this.tracks[this.tracks.length - 1];
+    }
+
     public get duration() {
         return this.tracks.reduce((acc, track) => acc + (track.info?.length || 0), 0) + (this.current?.info?.length || 0);
     }

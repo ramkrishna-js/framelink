@@ -43,12 +43,28 @@ export class LavalinkManager extends EventEmitter {
     }
 
     public createPlayer(options: PlayerOptions): Player {
+        const player = this.players.get(options.guildId);
+        if (player) return player;
+
         const node = this.getBestNode();
         if (!node) throw new Error("No available nodes.");
         
-        const player = new Player(this, node, options);
-        this.players.set(options.guildId, player);
-        return player;
+        const newPlayer = new Player(this, node, options);
+        this.players.set(options.guildId, newPlayer);
+        return newPlayer;
+    }
+
+    public use(plugin: Plugin) {
+        this.plugins.push(plugin);
+        plugin.load(this);
+        return this;
+    }
+
+    public destroy() {
+        this.nodes.forEach(node => node.disconnect());
+        this.players.forEach(player => player.destroy());
+        this.nodes.clear();
+        this.players.clear();
     }
 
     public destroyPlayer(guildId: string): boolean {
@@ -61,12 +77,15 @@ export class LavalinkManager extends EventEmitter {
     }
 
     public getBestNode(): LavalinkNode | undefined {
-        // Simple strategy: return first connected node
-        // In future: load balancing
-        for (const node of this.nodes.values()) {
-            if (node.connected) return node;
-        }
-        return undefined;
+        const connectedNodes = Array.from(this.nodes.values()).filter(node => node.connected);
+        if (connectedNodes.length === 0) return undefined;
+
+        // Sort by player count (least loaded first)
+        return connectedNodes.sort((a, b) => {
+            const aPlayers = a.stats.players || 0;
+            const bPlayers = b.stats.players || 0;
+            return aPlayers - bPlayers;
+        })[0];
     }
 
     /**

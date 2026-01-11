@@ -10,9 +10,28 @@
 
 ---
 
-[📄 Documentation](https://github.com/ramkrishna-js/framelink#readme) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/@ramkrishna-js/framelink)
+[📄 Documentation](https://framelink-docs.vercel.app/) | [💬 Discord Support](https://discord.gg/your-invite-link) | [📦 NPM](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 
 </div>
+
+<hr />
+
+## 📚 Documentation
+Check out our comprehensive [documentation](https://framelink-docs.vercel.app/) for detailed guides, API reference, and examples.
+
+<hr />
+
+## 🤖 Example Bot
+Looking for a ready-to-use implementation? Check out our [official music bot example](https://github.com/ramkrishna-js/framelink-music-bot). It's fully featured with slash commands and beautiful music cards.
+
+<hr />
+
+## 🎨 Visuals (FrameCard)
+Enhance your bot's user experience with **[@ramkrishna-js/framecard](https://www.npmjs.com/package/@ramkrishna-js/framecard)**. It's perfectly integrated with Framelink to generate beautiful music cards for every track.
+
+```bash
+npm install @ramkrishna-js/framecard
+```
 
 <hr />
 

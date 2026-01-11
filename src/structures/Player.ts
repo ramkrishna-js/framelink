@@ -80,6 +80,95 @@ export class Player {
         return this;
     }
 
+    public setVaporwave(value: boolean) {
+        if (value) {
+            this.setFilters({
+                timescale: { speed: 0.85, pitch: 0.8, rate: 1.0 }
+            });
+        } else {
+            this.setFilters({ timescale: { speed: 1.0, pitch: 1.0, rate: 1.0 } });
+        }
+        return this;
+    }
+
+    public setKaraoke(value: boolean) {
+        if (value) {
+            this.setFilters({
+                karaoke: { level: 1.0, monoLevel: 1.0, filterBand: 220.0, filterWidth: 100.0 }
+            });
+        } else {
+            this.setFilters({ karaoke: null });
+        }
+        return this;
+    }
+
+    public setEightD(value: boolean) {
+        if (value) {
+            this.setFilters({
+                rotation: { rotationHz: 0.2 }
+            });
+        } else {
+            this.setFilters({ rotation: null });
+        }
+        return this;
+    }
+
+    public setTremolo(value: boolean) {
+        if (value) {
+            this.setFilters({
+                tremolo: { frequency: 2.0, depth: 0.5 }
+            });
+        } else {
+            this.setFilters({ tremolo: null });
+        }
+        return this;
+    }
+
+    public setVibrato(value: boolean) {
+        if (value) {
+            this.setFilters({
+                vibrato: { frequency: 2.0, depth: 0.5 }
+            });
+        } else {
+            this.setFilters({ vibrato: null });
+        }
+        return this;
+    }
+
+    public async setSpeed(value: number) {
+        this.filters.timescale = { ...this.filters.timescale, speed: value };
+        await this.setFilters(this.filters);
+        return this;
+    }
+
+    public async setPitch(value: number) {
+        this.filters.timescale = { ...this.filters.timescale, pitch: value };
+        await this.setFilters(this.filters);
+        return this;
+    }
+
+    public async setRate(value: number) {
+        this.filters.timescale = { ...this.filters.timescale, rate: value };
+        await this.setFilters(this.filters);
+        return this;
+    }
+
+    public async clearFilters() {
+        this.filters = {};
+        await this.node.updatePlayer(this.guildId, {
+            filters: {}
+        });
+        return this;
+    }
+
+    public get duration() {
+        return this.queue.current?.info?.length || 0;
+    }
+
+    public get isPaused() {
+        return this.paused;
+    }
+
     public async play(track?: string | any, options: any = {}) {
         if (!track && !this.queue.current && this.queue.tracks.length > 0) {
             const next = this.queue.next();

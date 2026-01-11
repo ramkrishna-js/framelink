@@ -21,11 +21,15 @@ export class LavalinkNode {
     public stats: any = {};
     public connected: boolean = false;
     public sessionId: string | null = null;
+    private reconnectAttempts: number = 0;
+    private reconnectTimeout: NodeJS.Timeout | null = null;
 
     constructor(manager: LavalinkManager, options: NodeOptions) {
         this.manager = manager;
         this.options = {
             version: 'v4',
+            retryAmount: 5,
+            retryDelay: 5000,
             resumeTimeout: 60,
             ...options
         };
@@ -37,7 +41,7 @@ export class LavalinkNode {
         const headers: Record<string, string> = {
             Authorization: this.options.password || 'youshallnotpass',
             'User-Id': this.manager.userId || '0',
-            'Client-Name': '@ramkrishna-js/framelink/1.0.3'
+            'Client-Name': '@ramkrishna-js/framelink/1.0.7'
         };
 
         if (this.options.resumeKey) {
@@ -59,6 +63,17 @@ export class LavalinkNode {
         this.socket.on('message', this.onMessage.bind(this));
         this.socket.on('error', this.onError.bind(this));
         this.socket.on('close', this.onClose.bind(this));
+    }
+
+    public disconnect() {
+        if (!this.socket) return;
+        this.socket.close();
+        this.socket = null;
+        this.connected = false;
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
     }
 
     public send(payload: any) {
@@ -127,6 +142,12 @@ export class LavalinkNode {
 
     private onOpen() {
         this.connected = true;
+        this.reconnectAttempts = 0;
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
         if (this.options.resumeKey) {
             this.send({
                 op: 'configureResuming',
@@ -142,6 +163,7 @@ export class LavalinkNode {
         
         if (payload.op === 'ready') {
             this.sessionId = payload.sessionId;
+            console.log(`[Lavalink] Node ${this.options.host} ready with session ${this.sessionId}`);
         }
         
         switch (payload.op) {
@@ -218,5 +240,15 @@ export class LavalinkNode {
         this.connected = false;
         this.socket = null;
         this.manager.emit('nodeDisconnect', this, code, reason);
+
+        if (this.reconnectAttempts < (this.options.retryAmount || 5)) {
+            this.reconnectAttempts++;
+            console.log(`[Lavalink] Node ${this.options.host} disconnected. Retrying in ${this.options.retryDelay || 5000}ms... (${this.reconnectAttempts}/${this.options.retryAmount || 5})`);
+            this.reconnectTimeout = setTimeout(() => {
+                this.connect();
+            }, this.options.retryDelay || 5000);
+        } else {
+            console.error(`[Lavalink] Node ${this.options.host} failed to reconnect after ${this.options.retryAmount || 5} attempts.`);
+        }
     }
 }
