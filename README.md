@@ -3,8 +3,6 @@
 
 **A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
-<div align="center">
-
 [![npm version](https://img.shields.io/npm/v/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 [![npm downloads](https://img.shields.io/npm/dm/@ramkrishna-js/framelink.svg?style=flat-square)](https://www.npmjs.com/package/@ramkrishna-js/framelink)
 [![license](https://img.shields.io/github/license/ramkrishna-js/framelink.svg?style=flat-square)](https://github.com/ramkrishna-js/framelink/blob/master/LICENSE)
