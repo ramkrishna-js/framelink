@@ -37,7 +37,7 @@ export class LavalinkNode {
         const headers: Record<string, string> = {
             Authorization: this.options.password || 'youshallnotpass',
             'User-Id': this.manager.userId || '0',
-            'Client-Name': '@ramkrishna-js/framelink/1.0.0'
+            'Client-Name': '@ramkrishna-js/framelink/1.0.3'
         };
 
         if (this.options.resumeKey) {
@@ -84,6 +84,45 @@ export class LavalinkNode {
         });
         
         return await response.json();
+    }
+
+    public async updatePlayer(guildId: string, data: any) {
+        if (this.options.version === 'v4') {
+            if (!this.sessionId) throw new Error("No session ID available for v4 node.");
+            const protocol = this.options.secure ? 'https' : 'http';
+            const url = `${protocol}://${this.options.host}:${this.options.port || 2333}/v4/sessions/${this.sessionId}/players/${guildId}`;
+            
+            console.log(`[Lavalink] Updating player for guild ${guildId} on node ${this.options.host}`);
+            
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: this.options.password || 'youshallnotpass',
+                    'Content-Type': 'application/json',
+                    'Client-Name': '@ramkrishna-js/framelink/1.0.5'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                console.error(`[Lavalink] Failed to update player: ${response.status} ${response.statusText}`, error);
+            }
+        } else {
+            if (data.voice) {
+                this.send({
+                    op: 'voiceUpdate',
+                    guildId,
+                    ...data.voice
+                });
+            } else {
+                this.send({
+                    op: 'play',
+                    guildId,
+                    ...data
+                });
+            }
+        }
     }
 
     private onOpen() {

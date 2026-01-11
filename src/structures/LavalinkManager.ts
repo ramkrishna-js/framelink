@@ -95,15 +95,23 @@ export class LavalinkManager extends EventEmitter {
 
         const res = await node.loadTracks(identifier);
         
-        // Add helper properties to tracks
-        if (res.tracks) {
-            res.tracks = res.tracks.map((track: any) => ({
-                ...track,
-                displayThumbnail: track.info.uri.includes('youtube.com') 
-                    ? `https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`
-                    : track.info.artworkUrl || null
-            }));
+        let tracks: any[] = [];
+        
+        if (res.loadType === 'search' || res.loadType === 'SEARCH_RESULT') {
+            tracks = res.data || res.tracks || [];
+        } else if (res.loadType === 'playlist' || res.loadType === 'PLAYLIST_LOADED') {
+            tracks = res.data?.tracks || res.tracks || [];
+        } else if (res.loadType === 'track' || res.loadType === 'TRACK_LOADED') {
+            tracks = [res.data || res.tracks[0]];
         }
+
+        res.tracks = tracks.map((track: any) => ({
+            ...track,
+            track: track.encoded || track.track,
+            displayThumbnail: track.info?.uri?.includes('youtube.com') 
+                ? `https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`
+                : track.info?.artworkUrl || null
+        }));
 
         return res;
     }
@@ -120,13 +128,11 @@ export class LavalinkManager extends EventEmitter {
         if (!player) return;
 
         if (update.t === 'VOICE_SERVER_UPDATE') {
+            console.log(`[Lavalink] Received VOICE_SERVER_UPDATE for guild ${guildId}`);
             player.voiceUpdateState.event = data;
         } else {
-            if (data.user_id !== this.userId) {
-                // Potential player move (if the user is moving someone else or just seeing movement)
-                // But typically we only care about our own moves for Lavalink
-                return;
-            }
+            if (data.user_id !== this.userId) return;
+            console.log(`[Lavalink] Received VOICE_STATE_UPDATE for guild ${guildId}`);
 
             if (player.voiceChannelId && data.channel_id && player.voiceChannelId !== data.channel_id) {
                 this.emit('playerMove', player, player.voiceChannelId, data.channel_id);
@@ -137,7 +143,6 @@ export class LavalinkManager extends EventEmitter {
             if (data.channel_id) {
                 player.voiceChannelId = data.channel_id;
             } else {
-                // Disconnected from voice
                 player.voiceChannelId = null;
                 player.voiceUpdateState.event = null;
                 this.emit('playerDisconnect', player);
@@ -145,14 +150,18 @@ export class LavalinkManager extends EventEmitter {
         }
 
         if (player.voiceUpdateState.sessionId && player.voiceUpdateState.event) {
-            player.node.send({
-                op: 'voiceUpdate',
-                guildId: guildId,
-                sessionId: player.voiceUpdateState.sessionId,
-                event: player.voiceUpdateState.event
-            });
-            // Clear after sending? Usually Lavalink handles it. 
-            // Some libs keep it for reconnection. Let's keep it.
+            console.log(`[Lavalink] Sending voice update to Lavalink for guild ${guildId}`);
+            try {
+                await player.node.updatePlayer(guildId, {
+                    voice: {
+                        token: player.voiceUpdateState.event.token,
+                        endpoint: player.voiceUpdateState.event.endpoint,
+                        sessionId: player.voiceUpdateState.sessionId
+                    }
+                });
+            } catch (error) {
+                console.error(`[Lavalink] Failed to send voice update for guild ${guildId}:`, error);
+            }
         }
     }
 }

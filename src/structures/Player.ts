@@ -45,12 +45,10 @@ export class Player {
         return this;
     }
 
-    public setFilters(filters: any) {
+    public async setFilters(filters: any) {
         this.filters = filters;
-        this.node.send({
-            op: 'filters',
-            guildId: this.guildId,
-            ...filters
+        await this.node.updatePlayer(this.guildId, {
+            filters
         });
         return this;
     }
@@ -101,24 +99,24 @@ export class Player {
              return;
         }
 
-        this.isPlaying = true;
         this.queue.current = track;
-        
         const trackString = typeof track === 'string' ? track : track.track;
 
-        this.node.send({
-            op: 'play',
-            guildId: this.guildId,
-            track: trackString,
-            ...options
-        });
+        try {
+            await this.node.updatePlayer(this.guildId, {
+                encodedTrack: trackString,
+                ...options
+            });
+            this.isPlaying = true;
+        } catch (error) {
+            this.isPlaying = false;
+            console.error(`[Player] Failed to play track:`, error);
+            throw error;
+        }
     }
 
     public skip() {
-        this.node.send({
-            op: 'stop',
-            guildId: this.guildId
-        });
+        this.stop();
         return this;
     }
 
@@ -131,12 +129,10 @@ export class Player {
         return this;
     }
 
-    public pause(state: boolean = true) {
+    public async pause(state: boolean = true) {
         this.paused = state;
-        this.node.send({
-            op: 'pause',
-            guildId: this.guildId,
-            pause: state
+        await this.node.updatePlayer(this.guildId, {
+            paused: state
         });
         return this;
     }
@@ -145,10 +141,8 @@ export class Player {
         return this.pause(false);
     }
 
-    public seek(position: number) {
-        this.node.send({
-            op: 'seek',
-            guildId: this.guildId,
+    public async seek(position: number) {
+        await this.node.updatePlayer(this.guildId, {
             position
         });
         return this;
@@ -168,15 +162,29 @@ export class Player {
         }
         
         const res = await this.node.loadTracks(identifier);
-        if (res && res.tracks && res.tracks.length > 0) {
+        
+        // Handle v4 response
+        let tracks = [];
+        if (this.node.options.version === 'v4') {
+            tracks = res.data || [];
+        } else {
+            tracks = res.tracks || [];
+        }
+
+        if (tracks && tracks.length > 0) {
             // Find first track that isn't already in history or queue
-            const nextTrack = res.tracks.find((t: any) => 
-                t.track !== previousTrack.track && 
-                !this.queue.previous.some(p => p.track === t.track) &&
-                !this.queue.tracks.some(q => q.track === t.track)
-            ) || res.tracks[0];
+            const nextTrack = tracks.find((t: any) => 
+                (t.encoded || t.track) !== (previousTrack.encoded || previousTrack.track) && 
+                !this.queue.previous.some(p => (p.encoded || p.track) === (t.encoded || t.track)) &&
+                !this.queue.tracks.some(q => (q.encoded || q.track) === (t.encoded || t.track))
+            ) || tracks[0];
 
             if (nextTrack) {
+                // Normalize track for v4
+                if (this.node.options.version === 'v4' && !nextTrack.track) {
+                    nextTrack.track = nextTrack.encoded;
+                }
+
                 this.queue.add(nextTrack);
                 if (!this.isPlaying) this.play();
                 this.manager.emit('autoplay', this, nextTrack);
@@ -221,26 +229,23 @@ export class Player {
             textChannelId: this.textChannelId,
             paused: this.paused,
             isPlaying: this.isPlaying,
-            volume: 100, // Should probably track volume in player too
+            volume: this.volume,
             repeatMode: this.repeatMode,
             autoplay: this.autoplay,
             queue: this.queue.toJSON()
         };
     }
 
-    public stop() {
+    public async stop() {
         this.isPlaying = false;
-        this.node.send({
-            op: 'stop',
-            guildId: this.guildId
+        await this.node.updatePlayer(this.guildId, {
+            encodedTrack: null
         });
     }
 
-    public setVolume(volume: number) {
+    public async setVolume(volume: number) {
         this.volume = volume;
-        this.node.send({
-            op: 'volume',
-            guildId: this.guildId,
+        await this.node.updatePlayer(this.guildId, {
             volume: this.volume
         });
     }
@@ -250,12 +255,28 @@ export class Player {
         this.timestamp = state.time;
     }
 
-    public destroy() {
-        this.stop();
-        this.node.send({
-            op: 'destroy',
-            guildId: this.guildId
-        });
+    public async destroy() {
+        await this.stop();
+        
+        if (this.node.options.version === 'v4') {
+            if (this.node.sessionId) {
+                const protocol = this.node.options.secure ? 'https' : 'http';
+                const url = `${protocol}://${this.node.options.host}:${this.node.options.port || 2333}/v4/sessions/${this.node.sessionId}/players/${this.guildId}`;
+                await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: this.node.options.password || 'youshallnotpass'
+                    }
+                });
+            }
+        } else {
+            this.node.send({
+                op: 'destroy',
+                guildId: this.guildId
+            });
+        }
+        
+        this.manager.players.delete(this.guildId);
         this.manager.emit('playerDestroy', this);
     }
 }
