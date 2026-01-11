@@ -1,7 +1,7 @@
 <div align="center">
 <img src="https://capsule-render.vercel.app/render?type=waving&color=gradient&height=200&section=header&text=FrameLink&fontSize=80"  />
 
-**🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
+**A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.**
 
 <div align="center">
 
@@ -18,17 +18,18 @@
 
 <hr />
 
-## ✨ Features
-- 🎵 **Universal Support:** Seamlessly works with Lavalink v3 and v4.
-- 🎼 **Multi-Platform:** Built-in support for YouTube, Spotify, Apple Music, Deezer, and more.
-- 🚀 **Performance:** Optimized for speed with minimal memory footprint.
-- 🔄 **Smart Queue:** Advanced queue system with automated autoplay logic.
-- 🧩 **Extensible:** Robust plugin system to customize your experience.
-- 🛡️ **Type-Safe:** Written entirely in TypeScript for a superior DX.
+## Features
+- **Universal Support:** Seamlessly works with Lavalink v3 and v4.
+- **Multi-Platform:** Built-in support for YouTube, Spotify, Apple Music, Deezer, and more.
+- **Performance:** Optimized for speed with minimal memory footprint.
+- **Advanced Queue:** Smart queue system with shuffling, moving, and track manipulation.
+- **Aggressive Autoplay:** Intelligent recommendation system for continuous playback.
+- **Extensible:** Robust plugin system to customize your experience.
+- **Type-Safe:** Written entirely in TypeScript for a superior DX.
 
 <hr />
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @ramkrishna-js/framelink
@@ -36,7 +37,7 @@ npm install @ramkrishna-js/framelink
 
 <hr />
 
-## ╰┈1️⃣ Quick Start
+## Quick Start
 
 ### Initializing the Manager
 
@@ -80,7 +81,7 @@ player.play();
 
 <hr />
 
-## ╰┈2️⃣ Event Handling
+## Event Handling
 
 ```typescript
 manager.on('nodeConnect', (node) => {
@@ -98,7 +99,39 @@ manager.on('queueEnd', (player) => {
 
 <hr />
 
-## ╰┈3️⃣ Supported Platforms
+## Player & Queue Controls
+
+FrameLink provides comprehensive control over your music session:
+
+### Player Methods
+- `player.pause(state: boolean)` - Pause or resume playback.
+- `player.resume()` - Alias for `player.pause(false)`.
+- `player.skip()` - Skip the current track.
+- `player.previous()` - Play the previous track.
+- `player.seek(position: number)` - Seek to a specific position (ms).
+- `player.setVolume(volume: number)` - Set the player volume (0-1000).
+- `player.setFilters(filters: any)` - Apply Lavalink filters.
+- `player.connect(options)` - Join a voice channel.
+- `player.disconnect()` - Leave a voice channel.
+
+### Queue Methods
+- `player.queue.add(track | track[])` - Add tracks to the queue.
+- `player.queue.remove(index)` - Remove a track by index.
+- `player.queue.move(from, to)` - Move a track within the queue.
+- `player.queue.shuffle()` - Randomize the queue order.
+- `player.queue.clear()` - Clear all tracks from the queue.
+- `player.queue.skipTo(index)` - Skip directly to a specific track index.
+- `player.queue.removeDuplicates()` - Remove duplicate tracks from the queue.
+
+<hr />
+
+## Aggressive Autoplay
+
+Enable `autoplay: true` in your player options to automatically play related tracks when the queue ends. FrameLink uses an aggressive strategy to ensure the music never stops by fetching recommendations based on the previous track's source.
+
+<hr />
+
+## Supported Platforms
 
 FrameLink supports any platform compatible with Lavalink and its plugins (like LavaSrc):
 - YouTube / YouTube Music
@@ -111,7 +144,7 @@ FrameLink supports any platform compatible with Lavalink and its plugins (like L
 
 <hr />
 
-## 🧩 Plugins
+## Plugins
 
 FrameLink is built with extensibility in mind. You can easily create and load plugins to extend the manager's functionality.
 
@@ -135,7 +168,7 @@ const manager = new LavalinkManager({
 
 <hr />
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -143,7 +176,7 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 <hr />
 
-## 📜 License
+## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 

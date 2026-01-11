@@ -146,9 +146,11 @@ export class LavalinkNode {
                          player.queue.add(player.queue.current);
                      }
 
-                     // Auto-play next track in queue or trigger autoplay
-                     if (player.queue.tracks.length > 0) {
-                         player.play();
+                     // Transition to next track
+                     const nextTrack = player.queue.next();
+
+                     if (nextTrack) {
+                         player.play(nextTrack);
                      } else if (player.autoplay) {
                          player.triggerAutoplay();
                      } else {
