@@ -1,6 +1,6 @@
 {
   "name": "@ramkrishna-js/framelink",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "🚀 A lightweight, robust, and plugin-ready Lavalink client (v3 & v4) for Node.js.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
