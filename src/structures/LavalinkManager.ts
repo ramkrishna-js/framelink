@@ -116,21 +116,28 @@ export class LavalinkManager extends EventEmitter {
         
         let tracks: any[] = [];
         
-        if (res.loadType === 'search' || res.loadType === 'SEARCH_RESULT') {
-            tracks = res.data || res.tracks || [];
-        } else if (res.loadType === 'playlist' || res.loadType === 'PLAYLIST_LOADED') {
+        // Handle all possible load types (v3, v4, and LavaSrc)
+        const loadType = res.loadType?.toLowerCase() || 'empty';
+
+        if (['search', 'search_result', 'track', 'track_loaded', 'short'].includes(loadType)) {
+            tracks = res.data || res.tracks || (res.loadType === 'track' ? [res.data] : []);
+        } else if (['playlist', 'playlist_loaded', 'album', 'artist', 'recommendation', 'text'].includes(loadType)) {
             tracks = res.data?.tracks || res.tracks || [];
-        } else if (res.loadType === 'track' || res.loadType === 'TRACK_LOADED') {
-            tracks = [res.data || res.tracks[0]];
         }
 
-        res.tracks = tracks.map((track: any) => ({
-            ...track,
-            track: track.encoded || track.track,
-            displayThumbnail: track.info?.uri?.includes('youtube.com') 
-                ? `https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`
-                : track.info?.artworkUrl || null
-        }));
+        res.tracks = tracks.map((track: any) => {
+            const normalized = {
+                ...track,
+                track: track.encoded || track.track,
+                info: track.info || {},
+                displayThumbnail: track.info?.uri?.includes('youtube.com') 
+                    ? `https://img.youtube.com/vi/${track.info.identifier}/hqdefault.jpg`
+                    : track.info?.artworkUrl || track.info?.thumbnail || null
+            };
+            // Ensure track string is at top level for compatibility
+            if (!normalized.track && normalized.encoded) normalized.track = normalized.encoded;
+            return normalized;
+        });
 
         return res;
     }

@@ -21,6 +21,7 @@ export class LavalinkNode {
     public stats: any = {};
     public connected: boolean = false;
     public sessionId: string | null = null;
+    public ping: number = -1;
     private reconnectAttempts: number = 0;
     private reconnectTimeout: NodeJS.Timeout | null = null;
 
@@ -94,6 +95,21 @@ export class LavalinkNode {
 
         const response = await fetch(url.toString(), {
             headers: {
+                Authorization: this.options.password || 'youshallnotpass',
+                'Client-Name': '@ramkrishna-js/framelink/1.2.0'
+            }
+        });
+        
+        return await response.json();
+    }
+
+    public async decodeTrack(track: string) {
+        const protocol = this.options.secure ? 'https' : 'http';
+        let endpoint = this.options.version === 'v4' ? '/v4/decodetrack' : '/decodetrack';
+        const url = `${protocol}://${this.options.host}:${this.options.port || 2333}${endpoint}?track=${track}`;
+
+        const response = await fetch(url, {
+            headers: {
                 Authorization: this.options.password || 'youshallnotpass'
             }
         });
@@ -107,14 +123,12 @@ export class LavalinkNode {
             const protocol = this.options.secure ? 'https' : 'http';
             const url = `${protocol}://${this.options.host}:${this.options.port || 2333}/v4/sessions/${this.sessionId}/players/${guildId}`;
             
-            console.log(`[Lavalink] Updating player for guild ${guildId} on node ${this.options.host}`);
-            
             const response = await fetch(url, {
                 method: 'PATCH',
                 headers: {
                     Authorization: this.options.password || 'youshallnotpass',
                     'Content-Type': 'application/json',
-                    'Client-Name': '@ramkrishna-js/framelink/1.0.5'
+                    'Client-Name': '@ramkrishna-js/framelink/1.1.1'
                 },
                 body: JSON.stringify(data)
             });
@@ -148,7 +162,19 @@ export class LavalinkNode {
             this.reconnectTimeout = null;
         }
 
-        if (this.options.resumeKey) {
+        // Heartbeat for ping
+        const heartbeat = setInterval(() => {
+            if (!this.connected) return clearInterval(heartbeat);
+            const start = Date.now();
+            this.socket?.ping(() => {
+                this.ping = Date.now() - start;
+            });
+        }, 10000);
+
+        if (this.options.version === 'v4' && this.options.resumeKey) {
+            // In v4, we configure resuming via a PATCH to the session
+            // This is handled after the 'ready' event gives us a sessionId
+        } else if (this.options.resumeKey) {
             this.send({
                 op: 'configureResuming',
                 key: this.options.resumeKey,
@@ -158,12 +184,29 @@ export class LavalinkNode {
         this.manager.emit('nodeConnect', this);
     }
 
-    private onMessage(data: WebSocket.Data) {
+    private async onMessage(data: WebSocket.Data) {
         const payload = JSON.parse(data.toString());
         
         if (payload.op === 'ready') {
             this.sessionId = payload.sessionId;
             console.log(`[Lavalink] Node ${this.options.host} ready with session ${this.sessionId}`);
+            
+            // Configure resuming for v4
+            if (this.options.version === 'v4' && this.options.resumeKey) {
+                const protocol = this.options.secure ? 'https' : 'http';
+                const url = `${protocol}://${this.options.host}:${this.options.port || 2333}/v4/sessions/${this.sessionId}`;
+                await fetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: this.options.password || 'youshallnotpass',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        resuming: true,
+                        timeout: this.options.resumeTimeout
+                    })
+                });
+            }
         }
         
         switch (payload.op) {
@@ -192,11 +235,16 @@ export class LavalinkNode {
 
         switch (payload.type) {
             case 'TrackStartEvent':
+                player.isPlaying = true;
+                player.paused = false;
                 this.manager.emit('trackStart', player, payload.track);
                 break;
             case 'TrackEndEvent':
                 this.manager.emit('trackEnd', player, payload.track, payload.reason);
-                if (payload.reason === 'FINISHED' || payload.reason === 'LOAD_FAILED') {
+                if (payload.reason === 'replaced') return;
+                
+                player.isPlaying = false;
+                if (payload.reason === 'finished' || payload.reason === 'loadFailed') {
                      // Handle repeat modes
                      if (player.repeatMode === 'track' && player.queue.current) {
                          player.play(player.queue.current);
@@ -207,7 +255,6 @@ export class LavalinkNode {
                          player.queue.add(player.queue.current);
                      }
 
-                     // Transition to next track
                      const nextTrack = player.queue.next();
 
                      if (nextTrack) {
@@ -215,12 +262,12 @@ export class LavalinkNode {
                      } else if (player.autoplay) {
                          player.triggerAutoplay();
                      } else {
-                        player.isPlaying = false;
                         this.manager.emit('queueEnd', player);
                      }
                 }
                 break;
             case 'TrackExceptionEvent':
+                player.isPlaying = false;
                 this.manager.emit('trackError', player, payload.track, payload.exception);
                 break;
             case 'TrackStuckEvent':

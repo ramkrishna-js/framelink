@@ -165,10 +165,6 @@ export class Player {
         return this.queue.current?.info?.length || 0;
     }
 
-    public get isPaused() {
-        return this.paused;
-    }
-
     public async play(track?: string | any, options: any = {}) {
         if (!track && !this.queue.current && this.queue.tracks.length > 0) {
             const next = this.queue.next();
@@ -311,6 +307,14 @@ export class Player {
         return this;
     }
 
+    public get isPaused() {
+        return this.paused;
+    }
+
+    public get ping() {
+        return this.node.stats.ping || -1;
+    }
+
     public toJSON() {
         return {
             guildId: this.guildId,
@@ -321,6 +325,9 @@ export class Player {
             volume: this.volume,
             repeatMode: this.repeatMode,
             autoplay: this.autoplay,
+            ping: this.ping,
+            position: this.position,
+            filters: this.filters,
             queue: this.queue.toJSON()
         };
     }
